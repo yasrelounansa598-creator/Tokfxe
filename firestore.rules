@@ -293,3 +293,46 @@ service cloud.firestore {
   }
 }
 
+
+    // FexTok Wallet Security
+
+    match /wallets/{userId} {
+      // Only the wallet owner can read their balance.
+      allow read: if isOwner(userId);
+
+      // All balance changes must happen through trusted server code.
+      allow create, update, delete: if false;
+    }
+
+    match /coinPackages/{packageId} {
+      // Packages are readable by authenticated users.
+      allow read: if isSignedIn();
+
+      // Only trusted server administration can modify packages.
+      allow write: if false;
+    }
+
+    match /transactions/{transactionId} {
+      // Only the transaction owner can read their history.
+      allow read: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+
+      // Clients cannot create or modify financial records.
+      allow create, update, delete: if false;
+    }
+
+    match /payments/{paymentId} {
+      // Payment verification is server-side only.
+      allow read, write: if false;
+    }
+
+    match /gifts/{giftId} {
+      // Sender and receiver can inspect the gift.
+      allow read: if isSignedIn() && (
+        resource.data.senderId == request.auth.uid ||
+        resource.data.receiverId == request.auth.uid
+      );
+
+      // Gift creation and modification are server-side only.
+      allow create, update, delete: if false;
+    }
