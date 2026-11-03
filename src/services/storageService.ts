@@ -1,77 +1,96 @@
-import { getStorage, ref, uploadBytesResumable, getDownloadURL, UploadTaskSnapshot } from 'firebase/storage';
-import { app, isFirebaseConfigured } from '../firebase/config';
 
 /**
- * Uploads a video file or photo to Firebase Cloud Storage.
- * Provides real-time progress callbacks and fallback handling.
+ * Cloudinary Storage Service
+ * Project: TOK FXE
+ * Free unsigned uploads
  */
+
+const CLOUDINARY_CLOUD_NAME = 'aurmk69h';
+const CLOUDINARY_UPLOAD_PRESET = 'tke-fxe';
+
 export async function uploadMediaToStorage(
   file: File | Blob,
   folder: 'videos' | 'photos' | 'avatars',
   userId: string,
   onProgress?: (progressPercent: number) => void
-): Promise<{ downloadUrl: string; storagePath: string; isFallback?: boolean }> {
+): Promise<{
+  downloadUrl: string;
+  storagePath: string;
+  isFallback?: boolean;
+}> {
+
   const timestamp = Date.now();
-  const fileExt = file.type.includes('mp4')
-    ? 'mp4'
-    : file.type.includes('png')
-    ? 'png'
-    : file.type.includes('webp')
-    ? 'webp'
-    : 'jpg';
-  const fileName = `${userId}_${timestamp}.${fileExt}`;
+
+  const fileName = `${userId}_${timestamp}`;
+
   const storagePath = `${folder}/${userId}/${fileName}`;
 
-  // If Firebase is not configured or in offline/local mode, fallback gracefully to Blob URL
-  if (!app || !isFirebaseConfigured()) {
-    const localUrl = URL.createObjectURL(file);
-    if (onProgress) onProgress(100);
-    return { downloadUrl: localUrl, storagePath, isFallback: true };
-  }
+  const endpoint =
+    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
 
-  try {
-    const storage = getStorage(app);
-    const fileRef = ref(storage, storagePath);
+  const formData = new FormData();
 
-    const metadata = {
-      contentType: file.type || (folder === 'videos' ? 'video/mp4' : 'image/jpeg'),
-      customMetadata: {
-        uploadedBy: userId,
-        app: 'tok-fxe',
-        createdAt: new Date().toISOString(),
-      },
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  formData.append('public_id', storagePath);
+
+  return new Promise((resolve, reject) => {
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.open('POST', endpoint);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) {
+        const percent = Math.round(
+          (event.loaded / event.total) * 100
+        );
+
+        onProgress(percent);
+      }
     };
 
-    return new Promise((resolve) => {
-      const uploadTask = uploadBytesResumable(fileRef, file, metadata);
+    xhr.onload = () => {
+      try {
+        const response = JSON.parse(xhr.responseText);
 
-      uploadTask.on(
-        'state_changed',
-        (snapshot: UploadTaskSnapshot) => {
-          const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          if (onProgress) onProgress(Math.round(percent));
-        },
-        (error) => {
-          console.warn('[Tok Fxe Storage] Firebase Storage upload error, using local fallback:', error.message);
-          // Return local object URL so user operation never fails
-          const fallbackUrl = URL.createObjectURL(file);
-          resolve({ downloadUrl: fallbackUrl, storagePath, isFallback: true });
-        },
-        async () => {
-          try {
-            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve({ downloadUrl, storagePath, isFallback: false });
-          } catch (err) {
-            console.warn('[Tok Fxe Storage] Failed to get download URL, using local fallback:', err);
-            const fallbackUrl = URL.createObjectURL(file);
-            resolve({ downloadUrl: fallbackUrl, storagePath, isFallback: true });
+        if (xhr.status >= 200 && xhr.status < 300) {
+
+          if (!response.secure_url || !response.public_id) {
+            reject(new Error('Invalid Cloudinary response'));
+            return;
           }
+
+          if (onProgress) onProgress(100);
+
+          resolve({
+            downloadUrl: response.secure_url,
+            storagePath: response.public_id,
+            isFallback: false
+          });
+
+        } else {
+          reject(
+            new Error(
+              response.error?.message ||
+              'Cloudinary upload failed'
+            )
+          );
         }
-      );
-    });
-  } catch (error) {
-    console.warn('[Tok Fxe Storage] Storage exception, using fallback:', error);
-    const fallbackUrl = URL.createObjectURL(file);
-    return { downloadUrl: fallbackUrl, storagePath, isFallback: true };
-  }
+
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(new Error('Network error during upload'));
+    };
+
+    xhr.ontimeout = () => {
+      reject(new Error('Upload timed out'));
+    };
+
+    xhr.send(formData);
+  });
 }
