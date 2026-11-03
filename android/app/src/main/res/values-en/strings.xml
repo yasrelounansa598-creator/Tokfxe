@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">FexTok</string>
+    <string name="tab_for_you">For You</string>
+    <string name="tab_following">Following</string>
+    <string name="tab_friends">Friends</string>
+    <string name="tab_live">LIVE 🔴</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_explore">Explore</string>
+    <string name="nav_create">Create</string>
+    <string name="nav_inbox">Inbox</string>
+    <string name="nav_profile">Profile</string>
+
+    <string name="live_stream">Live Stream</string>
+    <string name="go_live">Go Live</string>
+    <string name="pk_battle">PK Battle</string>
+    <string name="send_gift">Send Gift</string>
+    <string name="co_host">Co-Host</string>
+</resources>

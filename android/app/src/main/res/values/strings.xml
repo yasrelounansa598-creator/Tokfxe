@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Tok Fxe</string>
+    <string name="app_name_ar">توك فيكس</string>
+    <string name="app_tagline">منصة الفيديوهات القصيرة والتواصل الاجتماعي</string>
+
+    <string name="tab_for_you">لك</string>
+    <string name="tab_following">المتابعون</string>
+    <string name="tab_friends">الأصدقاء</string>
+    <string name="tab_live">مباشر 🔴</string>
+
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_explore">اكتشف</string>
+    <string name="nav_create">إنشاء</string>
+    <string name="nav_inbox">الرسائل</string>
+    <string name="nav_profile">الملف الشخصي</string>
+
+    <string name="live_stream">بث مباشر</string>
+    <string name="go_live">ابدأ البث المباشر</string>
+    <string name="pk_battle">تحدي PK</string>
+    <string name="send_gift">إرسال هدية</string>
+    <string name="co_host">مضيف مشترك</string>
+</resources>

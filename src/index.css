@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-arabic: 'Tajawal', 'Cairo', system-ui, sans-serif;
+    --font-heading: 'Cairo', 'Tajawal', system-ui, sans-serif;
+  }
+  
+  body {
+    font-family: var(--font-arabic);
+    background-color: #05070B;
+    color: #F8FAFC;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Custom Utilities for Tok Fxe Neon Aesthetics & Smooth Animations */
+.font-arabic {
+  font-family: 'Tajawal', 'Cairo', system-ui, sans-serif;
+}
+
+.font-heading {
+  font-family: 'Cairo', 'Tajawal', system-ui, sans-serif;
+}
+
+.text-neon-cyan {
+  color: #00D9FF;
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.65);
+}
+
+.text-neon-purple {
+  color: #8A2BFF;
+  text-shadow: 0 0 10px rgba(138, 43, 255, 0.65);
+}
+
+.text-neon-pink {
+  color: #FF00A8;
+  text-shadow: 0 0 10px rgba(255, 0, 168, 0.65);
+}
+
+.border-neon-cyan {
+  border-color: #00D9FF;
+  box-shadow: 0 0 12px rgba(0, 217, 255, 0.45);
+}
+
+.border-neon-purple {
+  border-color: #8A2BFF;
+  box-shadow: 0 0 12px rgba(138, 43, 255, 0.45);
+}
+
+.border-neon-pink {
+  border-color: #FF00A8;
+  box-shadow: 0 0 12px rgba(255, 0, 168, 0.45);
+}
+
+.bg-neon-gradient {
+  background: linear-gradient(135deg, #00D9FF 0%, #8A2BFF 50%, #FF00A8 100%);
+}
+
+.bg-tokfxe-gradient {
+  background: linear-gradient(135deg, #00D9FF 0%, #8A2BFF 50%, #FF00A8 100%);
+}
+
+.bg-fextok-btn {
+  background: linear-gradient(135deg, #00D9FF 0%, #FF00A8 100%);
+}
+
+.shadow-neon-glow {
+  box-shadow: 0 0 25px rgba(0, 217, 255, 0.35), 0 0 18px rgba(255, 0, 168, 0.3);
+}
+
+/* Marquee for Music Title */
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 12s linear infinite;
+}
+
+/* Rotating Vinyl Disc */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 5s linear infinite;
+}
+
+/* Floating Music Notes */
+@keyframes float-note-1 {
+  0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0; }
+  50% { opacity: 0.9; }
+  100% { transform: translateY(-70px) translateX(-25px) scale(1.1) rotate(-35deg); opacity: 0; }
+}
+
+@keyframes float-note-2 {
+  0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 0; }
+  50% { opacity: 0.8; }
+  100% { transform: translateY(-80px) translateX(20px) scale(1.2) rotate(40deg); opacity: 0; }
+}
+
+.animate-float-note-1 {
+  animation: float-note-1 3s ease-in-out infinite;
+}
+
+.animate-float-note-2 {
+  animation: float-note-2 3.4s ease-in-out 1.2s infinite;
+}
+
+/* Hide scrollbar for clean app feed view */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

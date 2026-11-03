@@ -1,0 +1,23 @@
+{
+  "short_name": "Tok Fxe",
+  "name": "Tok Fxe - توك فيكس",
+  "description": "منصة التواصل الاجتماعي والفيديوهات القصيرة Tok Fxe بهوية نيون عصرية وميزات تفاعلية متكاملة",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512 192x192 144x144 96x96 72x72 48x48",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "32x32 64x64"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#05070B",
+  "theme_color": "#05070B",
+  "display": "standalone",
+  "orientation": "portrait"
+}

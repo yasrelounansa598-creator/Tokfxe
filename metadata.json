@@ -1,0 +1,6 @@
+{
+  "name": "FexTok - منصة الفيديوهات القصيرة",
+  "description": "منصة فيديوهات قصيرة عربية عصرية بتصميم نيون تفاعلي وميزات تيك توك متكاملة",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

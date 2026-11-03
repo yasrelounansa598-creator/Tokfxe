@@ -1,0 +1,116 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Authenticated user profile in Tok Fxe",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "username": { "type": "string", "maxLength": 30, "pattern": "^[a-zA-Z0-9_]+$" },
+        "usernameLowercase": { "type": "string", "maxLength": 30, "pattern": "^[a-z0-9_]+$" },
+        "email": { "type": "string", "maxLength": 150 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "bio": { "type": "string", "maxLength": 300 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "isPrivate": { "type": "boolean" },
+        "followersCount": { "type": "number" },
+        "followingCount": { "type": "number" },
+        "postsCount": { "type": "number" }
+      },
+      "required": ["uid", "displayName", "username", "usernameLowercase", "email"]
+    },
+    "UsernameReservation": {
+      "title": "Username Reservation",
+      "description": "Global unique username mapping to user UID to prevent duplicate usernames",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "username": { "type": "string", "maxLength": 30 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "username"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "Short video, image album, or thought post published on Tok Fxe",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "caption": { "type": "string", "maxLength": 500 },
+        "mediaType": { "type": "string", "enum": ["video", "image", "text"] },
+        "mediaURL": { "type": "string", "maxLength": 500 },
+        "thumbnailURL": { "type": "string", "maxLength": 500 },
+        "visibility": { "type": "string", "enum": ["public", "followers", "private"] },
+        "createdAt": { "type": "string" },
+        "likesCount": { "type": "number" },
+        "commentsCount": { "type": "number" }
+      },
+      "required": ["postId", "userId", "mediaType", "visibility"]
+    },
+    "Like": {
+      "title": "Post Like",
+      "description": "Like record linking user to post",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["postId", "userId"]
+    },
+    "Comment": {
+      "title": "Post Comment",
+      "description": "User comment on a post",
+      "type": "object",
+      "properties": {
+        "commentId": { "type": "string", "maxLength": 128 },
+        "postId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "text": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["commentId", "postId", "userId", "text"]
+    },
+    "Follow": {
+      "title": "Follow Relationship",
+      "description": "Social following relation between two Tok Fxe users",
+      "type": "object",
+      "properties": {
+        "followerId": { "type": "string", "maxLength": 128 },
+        "followingId": { "type": "string", "maxLength": 128 },
+        "status": { "type": "string", "enum": ["active", "pending"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["followerId", "followingId", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile records indexed by auth UID"
+    },
+    "/usernames/{username}": {
+      "schema": "UsernameReservation",
+      "description": "Unique username registry documents"
+    },
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Public, followers-only, and private posts"
+    },
+    "/posts/{postId}/likes/{userId}": {
+      "schema": "Like",
+      "description": "Likes associated with a post"
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments associated with a post"
+    },
+    "/follows/{followId}": {
+      "schema": "Follow",
+      "description": "Active follow relationships and pending follow requests"
+    }
+  }
+}

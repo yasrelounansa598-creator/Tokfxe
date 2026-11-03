@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Brand Neon Linear Gradients -->
+    <linearGradient id="tokfxeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D9FF" />
+      <stop offset="50%" stop-color="#8A2BFF" />
+      <stop offset="100%" stop-color="#FF00A8" />
+    </linearGradient>
+
+    <linearGradient id="fStemGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D9FF" />
+      <stop offset="100%" stop-color="#8A2BFF" />
+    </linearGradient>
+
+    <linearGradient id="xLegGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8A2BFF" />
+      <stop offset="100%" stop-color="#FF00A8" />
+    </linearGradient>
+
+    <linearGradient id="playTriGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D9FF" />
+      <stop offset="60%" stop-color="#FF00A8" />
+      <stop offset="100%" stop-color="#FF00A8" />
+    </linearGradient>
+
+    <!-- Professional Multi-Stage Glow Filters -->
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <filter id="highGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="24" result="blur1" />
+      <feGaussianBlur stdDeviation="8" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur1" />
+        <feMergeNode in="blur2" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Radial Background Depth Glow -->
+    <radialGradient id="nebulaGlow" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#00D9FF" stop-opacity="0.25" />
+      <stop offset="45%" stop-color="#8A2BFF" stop-opacity="0.15" />
+      <stop offset="85%" stop-color="#FF00A8" stop-opacity="0.05" />
+      <stop offset="100%" stop-color="#05070B" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Luxury Deep Black Squircle Background -->
+  <rect width="512" height="512" rx="118" fill="#05070B" />
+
+  <!-- Ambient Neon Nebula Aura -->
+  <rect width="512" height="512" rx="118" fill="url(#nebulaGlow)" />
+
+  <!-- Outer Squircle Neon Border with Gradient Glow -->
+  <rect width="496" height="496" x="8" y="8" rx="110" fill="none" stroke="url(#tokfxeGradient)" stroke-width="3.5" stroke-opacity="0.55" filter="url(#softGlow)" />
+
+  <!-- Subtle Inner Framing Ring -->
+  <rect width="480" height="480" x="16" y="16" rx="102" fill="none" stroke="#FFFFFF" stroke-width="0.75" stroke-opacity="0.12" />
+
+  <!-- Central Dynamic Kinetic FX + Video Play Symbol -->
+  <g transform="translate(256, 215) scale(1.08)" filter="url(#highGlow)">
+    <!-- Cyan Kinetic Wave Top Arc -->
+    <path d="M -90 -85 C -50 -108 20 -112 85 -85" fill="none" stroke="#00D9FF" stroke-width="8" stroke-linecap="round" opacity="0.85" />
+
+    <!-- Main F Vertical Cyber Stem -->
+    <path d="M -95 -75 L -60 -75 C -52 -75 -45 -68 -45 -60 L -45 50 C -45 58 -52 65 -60 65 L -95 65 C -103 65 -110 58 -110 50 L -110 -60 C -110 -68 -103 -75 -95 -75 Z" fill="url(#fStemGrad)" />
+
+    <!-- Top F Horizontal Arm with Kinetic Chamfer -->
+    <path d="M -45 -75 L 35 -75 C 45 -75 52 -67 52 -57 L 52 -35 C 52 -25 45 -18 35 -18 L -45 -18 Z" fill="url(#tokfxeGradient)" />
+
+    <!-- Middle Crossbar & Connection Bridge -->
+    <path d="M -45 0 L 15 0 C 22 0 28 6 28 13 L 28 22 C 28 29 22 35 15 35 L -45 35 Z" fill="#8A2BFF" />
+
+    <!-- Sweeping Diagonal "X" Leg with Vibrant Neon Pink -->
+    <path d="M -75 65 L -20 5 L 68 65 L 35 65 L -5 32 L -35 55 L -35 65 Z" fill="url(#xLegGrad)" />
+
+    <!-- Primary Video Play Triangle - Pulsing at the Core of the Mark -->
+    <!-- Triangle Coordinates: (-5, -28) -> (-5, 48) -> (60, 10) -->
+    <path d="M -5 -25 C -5 -32 3 -36 9 -33 L 64 2 C 70 5 70 14 64 18 L 9 53 C 3 56 -5 52 -5 45 Z" fill="url(#playTriGrad)" />
+
+    <!-- Inner Sharp White Triangle Core for High Definition Visibility -->
+    <polygon points="8,-8 8,28 38,10" fill="#FFFFFF" opacity="0.95" />
+
+    <!-- Digital Kinetic Frequency Sparks -->
+    <rect x="75" y="-48" width="22" height="7" rx="3.5" fill="#00D9FF" />
+    <rect x="85" y="-30" width="28" height="7" rx="3.5" fill="#FF00A8" />
+    <circle cx="82" cy="42" r="5" fill="#00D9FF" />
+
+    <!-- Bottom Pink-to-Purple Kinetic Wave Arc -->
+    <path d="M -85 92 C -30 115 45 115 90 85" fill="none" stroke="url(#tokfxeGradient)" stroke-width="7" stroke-linecap="round" opacity="0.9" />
+  </g>
+
+  <!-- Elegant Brand Typography: TOK FXE -->
+  <g transform="translate(256, 424)">
+    <text text-anchor="middle" font-family="'Plus Jakarta Sans', 'Cairo', -apple-system, sans-serif" font-weight="900" font-size="44" letter-spacing="7" fill="#FFFFFF">
+      TOK <tspan fill="#00D9FF">FXE</tspan>
+    </text>
+    <!-- Brand Underline Glow Bar -->
+    <rect x="-70" y="16" width="140" height="4" rx="2" fill="url(#tokfxeGradient)" filter="url(#softGlow)" />
+  </g>
+</svg>

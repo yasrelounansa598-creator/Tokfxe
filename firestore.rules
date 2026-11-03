@@ -1,0 +1,295 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny: All collections and paths are closed by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Checks whether the authenticated user actively follows targetUserId
+    function isFollowingActive(targetUserId) {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/follows/$(request.auth.uid + '_' + targetUserId)) &&
+        get(/databases/$(database)/documents/follows/$(request.auth.uid + '_' + targetUserId)).data.status == 'active';
+    }
+
+    // Evaluates post privacy: public for all, followers for active followers, private for author only
+    function canAccessPost(postData) {
+      return postData.visibility == 'public'
+        || (isSignedIn() && (
+          postData.userId == request.auth.uid 
+          || (postData.visibility == 'followers' && isFollowingActive(postData.userId))
+        ));
+    }
+
+    // Helper to evaluate access to parent post before reading/writing likes or comments
+    function canAccessParentPost(postId) {
+      return canAccessPost(get(/databases/$(database)/documents/posts/$(postId)).data);
+    }
+
+    // -------------------------------------------------------------
+    // 1. Users Collection: /users/{userId}
+    // -------------------------------------------------------------
+    match /users/{userId} {
+      // Authenticated users can read user profiles
+      allow read: if isSignedIn();
+
+      // Profile creation: must match authenticated user with zeroed counters and unverified status
+      allow create: if isOwner(userId)
+                    && request.resource.data.uid == userId
+                    && request.resource.data.followersCount == 0
+                    && request.resource.data.followingCount == 0
+                    && request.resource.data.postsCount == 0
+                    && request.resource.data.isVerified == false
+                    && request.resource.data.usernameLowercase == request.resource.data.username.lower();
+
+      // Profile update: ONLY allowed editable fields can change
+      // uid, email, followersCount, followingCount, isVerified, usernameLowercase CANNOT be changed
+      // postsCount can only be incremented/decremented by 1 when creating/deleting a post
+      allow update: if isOwner(userId)
+                    && request.resource.data.uid == resource.data.uid
+                    && request.resource.data.createdAt == resource.data.createdAt
+                    && request.resource.data.followersCount == resource.data.followersCount
+                    && request.resource.data.followingCount == resource.data.followingCount
+                    && request.resource.data.isVerified == resource.data.isVerified
+                    && request.resource.data.usernameLowercase == resource.data.usernameLowercase
+                    && (
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                        'displayName', 'bio', 'photoURL', 'coverImage', 'website', 'isPrivate', 'updatedAt'
+                      ])
+                      || (
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['postsCount', 'updatedAt'])
+                        && (request.resource.data.postsCount == resource.data.postsCount + 1 || request.resource.data.postsCount == resource.data.postsCount - 1)
+                      )
+                    );
+
+      allow delete: if false; // User deletion restricted to secure Admin SDK / Auth triggers
+    }
+
+    // -------------------------------------------------------------
+    // 2. Usernames Registry: /usernames/{username}
+    // -------------------------------------------------------------
+    match /usernames/{username} {
+      allow read: if true;
+
+      // Unique username reservation: lowercase alphanumeric 3-30 chars
+      allow create: if isSignedIn()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.username.lower() == username
+                    && request.resource.data.createdAt is string
+                    && username.size() >= 3 && username.size() <= 30
+                    && username.matches('^[a-z0-9_]+$')
+                    && (
+                      !exists(/databases/$(database)/documents/usernames/$(username))
+                      || get(/databases/$(database)/documents/usernames/$(username)).data.uid == request.auth.uid
+                    );
+
+      // Usernames can be refreshed by the same owner, or released via delete
+      allow update: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // -------------------------------------------------------------
+    // 3. Posts Collection: /posts/{postId}
+    // -------------------------------------------------------------
+    match /posts/{postId} {
+      // Reading posts enforces privacy across all queries
+      allow read: if canAccessPost(resource.data);
+
+      // Creating posts: validates required fields, author identity, and zeroed initial counters
+      allow create: if isSignedIn()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.postId == postId
+                    && request.resource.data.author.uid == request.auth.uid
+                    && request.resource.data.author.username is string
+                    && request.resource.data.caption is string
+                    && request.resource.data.caption.size() <= 2200
+                    && request.resource.data.mediaType in ['video', 'image', 'text']
+                    && request.resource.data.mediaURL is string
+                    && request.resource.data.visibility in ['public', 'followers', 'private']
+                    && request.resource.data.likesCount == 0
+                    && request.resource.data.commentsCount == 0
+                    && request.resource.data.createdAt is string;
+
+      // Updating posts:
+      // Author can update metadata (caption, visibility, thumbnailURL, hashtags)
+      // Signed-in users can only atomically increment/decrement likesCount or commentsCount by +/- 1
+      allow update: if (
+                      // 1. Author updating post content/privacy
+                      isSignedIn()
+                      && resource.data.userId == request.auth.uid
+                      && request.resource.data.userId == resource.data.userId
+                      && request.resource.data.postId == resource.data.postId
+                      && request.resource.data.createdAt == resource.data.createdAt
+                      && request.resource.data.likesCount == resource.data.likesCount
+                      && request.resource.data.commentsCount == resource.data.commentsCount
+                      && request.resource.data.visibility in ['public', 'followers', 'private']
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                        'caption', 'visibility', 'thumbnailURL', 'hashtags', 'musicTitle', 'updatedAt'
+                      ])
+                    ) || (
+                      // 2. Atomic counter increments strictly restricted to +/- 1
+                      isSignedIn()
+                      && canAccessPost(resource.data)
+                      && request.resource.data.userId == resource.data.userId
+                      && request.resource.data.postId == resource.data.postId
+                      && request.resource.data.createdAt == resource.data.createdAt
+                      && request.resource.data.caption == resource.data.caption
+                      && request.resource.data.visibility == resource.data.visibility
+                      && (
+                        (
+                          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount'])
+                          && (request.resource.data.likesCount == resource.data.likesCount + 1 || request.resource.data.likesCount == resource.data.likesCount - 1)
+                        )
+                        ||
+                        (
+                          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentsCount'])
+                          && (request.resource.data.commentsCount == resource.data.commentsCount + 1 || request.resource.data.commentsCount == resource.data.commentsCount - 1)
+                        )
+                      )
+                    );
+
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      // Subcollection: Likes (/posts/{postId}/likes/{userId})
+      match /likes/{userId} {
+        // Can only read likes if user has access to parent post
+        allow read: if canAccessParentPost(postId);
+
+        // User can only create like on their own UID with verified post access
+        allow create: if isOwner(userId)
+                      && canAccessParentPost(postId)
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.postId == postId
+                      && request.resource.data.createdAt is string;
+
+        allow update: if false; // Likes are immutable
+        allow delete: if isOwner(userId);
+      }
+
+      // Subcollection: Comments (/posts/{postId}/comments/{commentId})
+      match /comments/{commentId} {
+        // Can only read comments if user has access to parent post
+        allow read: if canAccessParentPost(postId);
+
+        // User can comment only if signed in and parent post is accessible
+        allow create: if isSignedIn()
+                      && canAccessParentPost(postId)
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.postId == postId
+                      && request.resource.data.commentId == commentId
+                      && request.resource.data.text is string
+                      && request.resource.data.text.size() > 0
+                      && request.resource.data.text.size() <= 1000
+                      && request.resource.data.createdAt is string;
+
+        allow update: if false; // Comments cannot be modified
+
+        // Deletion: allowed for the comment author OR the post owner
+        allow delete: if isSignedIn() && (
+          resource.data.userId == request.auth.uid ||
+          get(/databases/$(database)/documents/posts/$(postId)).data.userId == request.auth.uid
+        );
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 4. Follow Relationships: /follows/{followId}
+    // -------------------------------------------------------------
+    match /follows/{followId} {
+      // Only relationship participants can inspect the record
+      allow read: if isSignedIn() && (
+        resource.data.followerId == request.auth.uid || 
+        resource.data.followingId == request.auth.uid
+      );
+
+      // Create follow relationship:
+      // - Follower must be the authenticated user
+      // - Cannot follow self
+      // - followId must strictly equal followerId_followingId
+      // - If target user is private, initial status MUST be 'pending'
+      // - If target user is public, initial status MUST be 'active'
+      allow create: if isSignedIn()
+                    && request.resource.data.followerId == request.auth.uid
+                    && request.resource.data.followerId != request.resource.data.followingId
+                    && followId == (request.resource.data.followerId + '_' + request.resource.data.followingId)
+                    && request.resource.data.createdAt is string
+                    && (
+                      (get(/databases/$(database)/documents/users/$(request.resource.data.followingId)).data.isPrivate == true
+                        && request.resource.data.status == 'pending')
+                      ||
+                      (get(/databases/$(database)/documents/users/$(request.resource.data.followingId)).data.isPrivate == false
+                        && request.resource.data.status == 'active')
+                    );
+
+      // Update follow relationship:
+      // - Only the target user (followingId) can accept the follow request
+      // - Cannot change followerId or followingId
+      // - Can ONLY transition status from 'pending' to 'active'
+      allow update: if isSignedIn()
+                    && resource.data.followingId == request.auth.uid
+                    && request.resource.data.followerId == resource.data.followerId
+                    && request.resource.data.followingId == resource.data.followingId
+                    && request.resource.data.createdAt == resource.data.createdAt
+                    && resource.data.status == 'pending'
+                    && request.resource.data.status == 'active'
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+
+      // Unfollow by follower OR reject/remove by target user
+      allow delete: if isSignedIn() && (
+        resource.data.followerId == request.auth.uid || 
+        resource.data.followingId == request.auth.uid
+      );
+    }
+
+    // -------------------------------------------------------------
+    // 5. Video & Voice Calls (WebRTC Signaling): /calls/{callId}
+    // -------------------------------------------------------------
+    match /calls/{callId} {
+      // Caller or receiver can read the call session
+      allow read: if isSignedIn() && (
+        resource.data.callerId == request.auth.uid ||
+        resource.data.receiverId == request.auth.uid
+      );
+
+      // Caller initiates the call
+      allow create: if isSignedIn()
+                    && request.resource.data.callerId == request.auth.uid
+                    && request.resource.data.callId == callId
+                    && request.resource.data.status in ['ringing', 'accepted', 'rejected', 'ended']
+                    && request.resource.data.createdAt is string;
+
+      // Caller or receiver can update call state (answer, reject, end)
+      allow update: if isSignedIn() && (
+        resource.data.callerId == request.auth.uid ||
+        resource.data.receiverId == request.auth.uid
+      );
+
+      // Participants can delete / cleanup finished calls
+      allow delete: if isSignedIn() && (
+        resource.data.callerId == request.auth.uid ||
+        resource.data.receiverId == request.auth.uid
+      );
+
+      // ICE candidates subcollections for WebRTC NAT traversal
+      match /callerCandidates/{candidateId} {
+        allow read, write: if isSignedIn();
+      }
+
+      match /receiverCandidates/{candidateId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+  }
+}
+

@@ -1,0 +1,20 @@
+<resources>
+    <!-- Tok Fxe Official Neon Brand Palette -->
+    <color name="tokfxe_black">#05070B</color>
+    <color name="tokfxe_dark_surface">#0E1424</color>
+    <color name="tokfxe_cyan">#00D9FF</color>
+    <color name="tokfxe_purple">#8A2BFF</color>
+    <color name="tokfxe_pink">#FF00A8</color>
+    <color name="tokfxe_white">#FFFFFF</color>
+    <color name="tokfxe_slate">#94A3B8</color>
+    <color name="tokfxe_overlay">#8005070B</color>
+
+    <!-- Compatibility aliases -->
+    <color name="fextok_black">#05070B</color>
+    <color name="fextok_dark_navy">#0E1424</color>
+    <color name="fextok_cyan">#00D9FF</color>
+    <color name="fextok_purple">#8A2BFF</color>
+    <color name="fextok_pink">#FF00A8</color>
+    <color name="fextok_white">#FFFFFF</color>
+    <color name="fextok_slate">#94A3B8</color>
+</resources>
